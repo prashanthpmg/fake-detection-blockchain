@@ -5,7 +5,8 @@ import pickle
 from datetime import datetime
 from blockchain import Blockchain
 import os
-from google import genai
+import google.generativeai as genai
+
 
 #load
 from dotenv import load_dotenv
@@ -20,8 +21,8 @@ app.config['UPLOAD_FOLDER'] = os.getenv("UPLOAD_FOLDER")
 api_key = os.getenv("GEMINI_API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME")
 
-client = genai.Client(api_key=api_key)
-
+genai.configure(api_key=api_key)
+model = genai.GenerativeModel(MODEL_NAME)
 
 # Initialize blockchain
 blockchain = Blockchain()
@@ -99,10 +100,7 @@ def analyze_sentiment(text):
         """
         
         try:
-            response = client.models.generate_content(
-                model=MODEL_NAME,
-                contents=prompt
-            )
+            response = genai.GenerativeModel(MODEL_NAME).generate_content(prompt)
             ai_text = response.candidates[0].content.parts[0].text.lower()
             ai_response = response.text.strip().lower()
             if 'positive' in ai_response:
@@ -148,10 +146,7 @@ def detect_fake_news(text):
     """
 
     try:
-        response = client.models.generate_content(
-            model=MODEL_NAME,
-            contents=prompt
-        )
+        response = model.generate_content(prompt)
 
         # ✅ Correct variable
         ai_response = response.candidates[0].content.parts[0].text.strip()
