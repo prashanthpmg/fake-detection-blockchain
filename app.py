@@ -18,6 +18,10 @@ app.secret_key = os.getenv("SECRET_KEY")
 app.config['DATABASE'] = os.getenv("DATABASE")
 app.config['UPLOAD_FOLDER'] = os.getenv("UPLOAD_FOLDER")
 
+# ✅ Initialize database (IMPORTANT FIX)
+with app.app_context():
+    init_db()
+
 api_key = os.getenv("GEMINI_API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME")
 
@@ -520,6 +524,5 @@ def get_detailed_factcheck():
     return {'analysis': analysis}
 
 if __name__ == "__main__":
-    init_db()
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
