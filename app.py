@@ -15,12 +15,9 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
-app.config['DATABASE'] = os.getenv("DATABASE")
+app.config['DATABASE'] = os.getenv("DATABASE", "database.db")
 app.config['UPLOAD_FOLDER'] = os.getenv("UPLOAD_FOLDER")
 
-# ✅ Initialize database (IMPORTANT FIX)
-with app.app_context():
-    init_db()
 
 api_key = os.getenv("GEMINI_API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME")
@@ -78,6 +75,10 @@ def init_db():
         except sqlite3.OperationalError:
             pass  # Column already exists
         db.commit()
+# ✅ CORRECT PLACE
+with app.app_context():
+    init_db()
+
 
 # Helper functions
 def analyze_sentiment(text):
@@ -243,7 +244,7 @@ def detailed_fact_check(text):
     """
     
     try:
-        response = client.models.generate_content(prompt)
+        response = model.generate_content(prompt)
         return response.text
     except Exception as e:
         return f"Fact-check analysis unavailable. Error: {e}"
@@ -265,7 +266,7 @@ def get_detailed_analysis(text):
     """
     
     try:
-        response = client.models.generate_content(prompt)
+        response = model.generate_content(prompt)
         return response.text
     except Exception as e:
         return f"Analysis unavailable. Error: {e}"
