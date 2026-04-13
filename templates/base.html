@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewsChain - {% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #e74c3c;
+            --gold-color: #f39c12;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-gray: #85d4e8;
+            --dark-gray: #7f8c8d;
+            --white: #ffffff8f;
+            --black: #2c3e50;
+            --gradient-primary: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            --gradient-accent: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            --gradient-gold: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            --glass-bg: rgba(224, 145, 145, 0.95);
+            --glass-border: rgba(44, 62, 80, 0.1);
+            --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--light-gray);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Professional Background with News Theme */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(135deg, rgba(44, 62, 80, 0.05) 0%, rgba(52, 73, 94, 0.05) 100%),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23ecf0f1" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Floating News Elements */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .floating-icon {
+            position: absolute;
+            color: var(--dark-gray);
+            opacity: 0.1;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); }
+            100% { transform: translateY(-100px) rotate(360deg); }
+        }
+
+        /* Professional Navbar */
+        .navbar {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 3px solid var(--accent-color);
+            box-shadow: var(--shadow-soft);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 2rem;
+            color: var(--primary-color) !important;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .navbar-brand::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: var(--gradient-accent);
+            transition: width 0.3s ease;
+        }
+
+        .navbar-brand:hover::after {
+            width: 100%;
+        }
+
+        .navbar-brand:hover {
+            color: var(--accent-color) !important;
+            transform: translateY(-2px);
+        }
+
+        .navbar-nav .nav-link {
+            color: var(--primary-color) !important;
+            font-weight: 500;
+            padding: 0.7rem 1.2rem !important;
+            margin: 0 0.3rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .navbar-nav .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-accent);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .navbar-nav .nav-link:hover::before {
+            left: 0;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: var(--white) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        /* Enhanced Container */
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Professional Alerts */
+        .alert {
+            background: var(--white) !important;
+            border: none;
+            border-left: 5px solid;
+            border-radius: 10px;
+            box-shadow: var(--shadow-soft);
+            color: var(--primary-color);
+            animation: slideInRight 0.5s ease;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            border-left-color: var(--success-color);
+        }
+
+        .alert-danger {
+            border-left-color: var(--danger-color);
+        }
+
+        .alert-warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .alert-info {
+            border-left-color: var(--primary-color);
+        }
+
+        .alert i {
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .alert-success i {
+            color: var(--success-color);
+        }
+
+        .alert-danger i {
+            color: var(--danger-color);
+        }
+
+        .alert-warning i {
+            color: var(--warning-color);
+        }
+
+        .alert-info i {
+            color: var(--primary-color);
+        }
+
+        .btn-close {
+            filter: none;
+            opacity: 0.7;
+        }
+
+        .btn-close:hover {
+            opacity: 1;
+        }
+
+        /* Content Area Enhancement */
+        .content-area {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-accent);
+        }
+
+        .content-area:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-5px);
+        }
+
+        /* Professional Footer */
+        footer {
+            background: var(--gradient-primary) !important;
+            border-top: 3px solid var(--accent-color);
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            margin-top: 4rem;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="newspattern" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23newspattern)"/></svg>');
+            pointer-events: none;
+        }
+
+        footer .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        footer h5 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--white);
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        footer h5::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--gradient-gold);
+        }
+
+        footer p, footer li {
+            color: rgba(255, 255, 255, 0.371);
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
+
+        footer a {
+            color: rgba(255, 255, 255, 0.21) !important;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            display: inline-block;
+        }
+
+        footer a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-gold);
+            transition: width 0.3s ease;
+        }
+
+        footer a:hover::after {
+            width: 100%;
+        }
+
+        footer a:hover {
+            color: var(--white) !important;
+            transform: translateX(5px);
+        }
+
+        footer i {
+            margin-right: 0.7rem;
+            color: var(--gold-color);
+            font-size: 1.1rem;
+        }
+
+        footer hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            margin: 3rem 0 2rem 0;
+        }
+
+        /* NewsChain Specific Enhancements */
+        .blockchain-badge {
+            background: var(--gradient-gold);
+            color: var(--white);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Professional Statistics Cards */
+        .stats-card {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+            transition: all 0.3s ease;
+            border-top: 4px solid var(--accent-color);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .stats-card h3 {
+            color: var(--primary-color);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-card p {
+            color: var(--dark-gray);
+            margin: 0;
+        }
+
+        /* Enhanced Button Styles */
+        .btn-primary {
+            background: var(--gradient-accent);
+            border: none;
+            border-radius: 25px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+        }
+
+        /* Animations */
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+            
+            .content-area {
+                padding: 1.5rem;
+                margin: 1rem 0;
+            }
+            
+            footer .container {
+                text-align: center;
+            }
+            
+            footer .col-md-3, footer .col-md-4 {
+                margin-bottom: 2rem;
+            }
+            
+            .floating-elements {
+                display: none;
+            }
+        }
+
+        /* Loading States */
+        .loading {
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        /* Scroll Indicator */
+        .scroll-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: var(--gradient-accent);
+            z-index: 9999;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Scroll Progress Indicator -->
+    <div class="scroll-indicator" id="scrollIndicator"></div>
+
+    <!-- Floating News Elements -->
+    <div class="floating-elements">
+        <i class="bi bi-newspaper floating-icon" style="left: 10%; animation-delay: 0s; font-size: 2rem;"></i>
+        <i class="bi bi-shield-check floating-icon" style="left: 20%; animation-delay: 5s; font-size: 1.5rem;"></i>
+        <i class="bi bi-link-45deg floating-icon" style="left: 30%; animation-delay: 10s; font-size: 2.5rem;"></i>
+        <i class="bi bi-globe floating-icon" style="left: 40%; animation-delay: 15s; font-size: 1.8rem;"></i>
+        <i class="bi bi-broadcast floating-icon" style="left: 50%; animation-delay: 3s; font-size: 2rem;"></i>
+        <i class="bi bi-award floating-icon" style="left: 60%; animation-delay: 8s; font-size: 1.6rem;"></i>
+        <i class="bi bi-people floating-icon" style="left: 70%; animation-delay: 12s; font-size: 2.2rem;"></i>
+        <i class="bi bi-lightning floating-icon" style="left: 80%; animation-delay: 6s; font-size: 1.7rem;"></i>
+        <i class="bi bi-check-circle floating-icon" style="left: 90%; animation-delay: 9s; font-size: 1.9rem;"></i>
+    </div>
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="bi bi-shield-lock me-2"></i>NewsChain
+                <span class="blockchain-badge">Blockchain</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="bi bi-house-door me-1"></i>Home
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    {% if 'user_id' in session %}
+                        {% if session['role'] == 'admin' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                                    <i class="bi bi-speedometer2 me-1"></i>Admin Dashboard
+                                </a>
+                            </li>
+                        {% elif session['role'] == 'reporter' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('reporter_dashboard') }}">
+                                    <i class="bi bi-pencil-square me-1"></i>Reporter Dashboard
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('logout') }}">
+                                <i class="bi bi-power me-1"></i>Logout ({{ session['username'] }})
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">
+                                <i class="bi bi-door-open me-1"></i>Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register') }}">
+                                <i class="bi bi-person-plus me-1"></i>Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show loading" role="alert">
+                        <i class="bi bi-{% if category == 'success' %}check-circle-fill{% elif category == 'danger' %}exclamation-triangle-fill{% elif category == 'warning' %}exclamation-circle-fill{% else %}info-circle-fill{% endif %}"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="content-area loading">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <footer class="text-white">
+        <div class="container py-5">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5><i class="bi bi-shield-lock-fill me-2"></i>About NewsChain</h5>
+                    <p>NewsChain revolutionizes journalism through blockchain technology, ensuring every news article is verified, authentic, and immutable. Our platform promotes positive sentiment while maintaining editorial integrity and transparency.</p>
+                    <div class="mt-3">
+                        <span class="badge bg-success me-2"><i class="bi bi-check-circle me-1"></i>Verified News</span>
+                        <span class="badge bg-warning me-2"><i class="bi bi-shield-check me-1"></i>Blockchain Secured</span>
+                        <span class="badge bg-info"><i class="bi bi-graph-up me-1"></i>Positive Impact</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <h5><i class="bi bi-link-45deg me-2"></i>Platform Features</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('index') }}"><i class="bi bi-house-door"></i>Latest News Feed</a></li>
+                        <li><a href="#"><i class="bi bi-patch-check"></i>Blockchain Verification</a></li>
+                        <li><a href="#"><i class="bi bi-graph-up-arrow"></i>Sentiment Analysis</a></li>
+                        <li><a href="#"><i class="bi bi-people"></i>Community Trust Score</a></li>
+                        {% if 'user_id' not in session %}
+                            <li><a href="{{ url_for('login') }}"><i class="bi bi-door-open"></i>Join Our Platform</a></li>
+                            <li><a href="{{ url_for('register') }}"><i class="bi bi-person-plus"></i>Become a Reporter</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5><i class="bi bi-telephone-fill me-2"></i>Contact & Support</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-envelope-fill"></i> press@newschain.com</li>
+                        <li><i class="bi bi-headset"></i> support@newschain.com</li>
+                        <li><i class="bi bi-telephone-fill"></i> +1 (555) NEWS-CHAIN</li>
+                        <li><i class="bi bi-geo-alt-fill"></i> Silicon Valley, CA</li>
+                        <li><i class="bi bi-globe"></i> www.newschain.com</li>
+                    </ul>
+                    <div class="mt-3">
+                        <h6><i class="bi bi-share me-2"></i>Follow Us</h6>
+                        <a href="#" class="me-3"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="me-3"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" class="me-3"><i class="bi bi-github"></i></a>
+                        <a href="#"><i class="bi bi-telegram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2023 NewsChain. All rights reserved. | Powered by Blockchain Technology</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>Building the future of trusted journalism <i class="bi bi-heart-fill text-danger"></i></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        // Enhanced loading animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingElements = document.querySelectorAll('.loading');
+            loadingElements.forEach((element, index) => {
+                setTimeout(() => {
+                    element.style.opacity = '1';
+                }, index * 150);
+            });
+        });
+
+        // Scroll Progress Indicator
+        window.addEventListener('scroll', function() {
+            const scrollIndicator = document.getElementById('scrollIndicator');
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercentage = (scrollTop / scrollHeight) * 100;
+            scrollIndicator.style.width = scrollPercentage + '%';
+        });
+
+        // Enhanced navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+                navbar.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.15)';
+            } else {
+                navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+                navbar.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
+            }
+        });
+
+        // Add smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

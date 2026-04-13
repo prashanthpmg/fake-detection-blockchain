@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Admin Dashboard</h2>
+            <p class="text-muted mb-0">Manage news submissions and system operations</p>
+        </div>
+        <div class="d-flex gap-2">
+            <div class="badge bg-info text-dark p-2">
+                <i class="bi bi-shield-lock"></i> Admin Privileges
+            </div>
+            <a href="{{ url_for('view_blockchain') }}" class="btn btn-outline-primary">
+                <i class="bi bi-blockchain"></i> View Blockchain
+            </a>
+        </div>
+    </div>
+
+    <!-- Pending News Section -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-list-check"></i> Pending News for Review
+                <span class="badge bg-light text-dark ms-2">{{ pending_news|length }}</span>
+            </h5>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="highlightFakeNews" checked>
+                <label class="form-check-label text-white" for="highlightFakeNews">
+                    Highlight Fake News
+                </label>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if pending_news %}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th width="25%">Title</th>
+                            <th width="15%">Reporter</th>
+                            <th width="10%">Sentiment</th>
+                            <th width="15%">Fake Detection</th>
+                            <th width="15%">Date</th>
+                            <th width="20%">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for news in pending_news %}
+                        <tr class="{% if news['is_fake'] %}table-warning fake-news-row{% endif %}">
+                            <td>
+                                <strong>{{ news['title'] }}</strong>
+                                {% if news['is_fake'] %}
+                                <br><small class="text-warning"><i class="bi bi-exclamation-triangle"></i> Potential Fake</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-person-circle me-2"></i>
+                                    {{ news['username'] }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if news['sentiment'] == 'positive' %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-emoji-smile"></i> Positive
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-emoji-frown"></i> Negative
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if news['is_fake'] %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-shield-exclamation"></i> Potential Fake
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-primary">
+                                        <i class="bi bi-shield-check"></i> Genuine
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ news['created_at'][:16] }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('news_detail', news_id=news['id']) }}" 
+                                       class="btn btn-sm btn-info" 
+                                       title="View Details"
+                                       target="_blank">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                
+                                    <a href="{{ url_for('approve_news', news_id=news['id']) }}" 
+                                       class="btn btn-sm btn-success" 
+                                       title="Approve"
+                                       onclick="return confirm('Are you sure you want to approve this news?')">
+                                        <i class="bi bi-check-circle"></i>
+                                    </a>
+                                    <a href="{{ url_for('reject_news', news_id=news['id']) }}" 
+                                       class="btn btn-sm btn-danger" 
+                                       title="Reject"
+                                       onclick="return confirm('Are you sure you want to reject this news?')">
+                                        <i class="bi bi-x-circle"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <h4 class="text-muted mt-3">No Pending News</h4>
+                <p class="text-muted">All news articles have been reviewed.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('view_blockchain') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-blockchain"></i> View Blockchain Records
+                        </a>
+                        <button class="btn btn-outline-info" id="refreshStats">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh Statistics
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="bi bi-graph-up"></i> System Status</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            Blockchain Status
+                            <span class="badge bg-success">Active</span>
+                        </div>
+                     
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            Database
+                            <span class="badge bg-success">Connected</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Analysis Modal -->
+<div class="modal fade" id="analysisModal" tabindex="-1" aria-labelledby="analysisModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="analysisModalLabel">
+                    <i class="bi bi-robot"></i> AI Analysis Report
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="analysisContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-warning" role="status"></div>
+                        <p class="mt-2">Getting AI analysis...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.fake-news-row {
+    border-left: 4px solid #ffc107;
+    animation: pulse-warning 2s infinite;
+}
+
+@keyframes pulse-warning {
+    0% { background-color: rgba(255, 193, 7, 0.1); }
+    50% { background-color: rgba(255, 193, 7, 0.2); }
+    100% { background-color: rgba(255, 193, 7, 0.1); }
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.btn-group .btn {
+    border-radius: 0.375rem;
+    margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize statistics
+    updateStatistics();
+    
+    // Highlight fake news toggle
+    const highlightToggle = document.getElementById('highlightFakeNews');
+    highlightToggle.addEventListener('change', function() {
+        const fakeNewsRows = document.querySelectorAll('.fake-news-row');
+        fakeNewsRows.forEach(row => {
+            row.style.display = this.checked ? '' : 'none';
+        });
+    });
+
+    // AI Analysis Modal
+    const analysisModal = new bootstrap.Modal(document.getElementById('analysisModal'));
+    const analysisContent = document.getElementById('analysisContent');
+    const analysisTitle = document.getElementById('analysisModalLabel');
+    
+    document.querySelectorAll('.view-analysis').forEach(button => {
+        button.addEventListener('click', function() {
+            const content = this.getAttribute('data-content');
+            const title = this.getAttribute('data-title');
+            
+            analysisTitle.innerHTML = `<i class="bi bi-robot"></i> AI Analysis: ${title}`;
+            analysisContent.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-warning" role="status"></div>
+                    <p class="mt-2">Analyzing content with AI...</p>
+                </div>
+            `;
+            
+            analysisModal.show();
+            
+            // Get analysis from server
+            fetch('/get-analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: content })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.analysis) {
+                    analysisContent.innerHTML = `
+                        <div class="analysis-result">
+                            <div class="bg-light p-3 rounded">
+                                <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;">${data.analysis}</pre>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    analysisContent.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Failed to get AI analysis. Please try again.
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                analysisContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Error: ${error.message}
+                    </div>
+                `;
+            });
+        });
+    });
+
+    // Refresh statistics
+    document.getElementById('refreshStats').addEventListener('click', function() {
+        updateStatistics();
+        this.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refreshing...';
+        setTimeout(() => {
+            this.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh Statistics';
+        }, 1000);
+    });
+
+    function updateStatistics() {
+        // Count fake news
+        const fakeNewsCount = document.querySelectorAll('.fake-news-row').length;
+        document.getElementById('fakeNewsCount').textContent = fakeNewsCount;
+        
+        // Count negative sentiment
+        const negativeCount = document.querySelectorAll('.badge.bg-danger').length;
+        document.getElementById('negativeCount').textContent = negativeCount;
+        
+        // You can add more statistics here as needed
+    }
+
+    // Auto-refresh page every 30 seconds to check for new submissions
+    setInterval(() => {
+        const refreshBtn = document.getElementById('refreshStats');
+        refreshBtn.click();
+    }, 30000);
+});
+</script>
+{% endblock %}

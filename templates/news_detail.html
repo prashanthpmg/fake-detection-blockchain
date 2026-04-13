@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article['title'] }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <article class="news-article">
+            <header class="mb-4">
+                <h1 class="display-5 fw-bold mb-3">{{ article['title'] }}</h1>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="author-info">
+                        <span class="text-muted">By {{ article['username'] }}</span>
+                        <span class="text-muted mx-2">•</span>
+                        <span class="text-muted">{{ article['created_at'] }}</span>
+                    </div>
+                    <div class="article-badges">
+                        {% if article['sentiment'] == 'positive' %}
+                            <span class="badge bg-success">Positive</span>
+                        {% else %}
+                            <span class="badge bg-danger">Negative</span>
+                        {% endif %}
+                        {% if article['is_fake'] %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle-fill"></i> 
+                            This article was flagged as potential fake news. It's only visible because you're an admin.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="d-flex align-items-center mb-4">
+                    <button class="btn btn-sm btn-outline-secondary verify-btn me-2">
+                        <i class="bi bi-shield-check"></i> Verify on Blockchain
+                    </button>
+                    <span id="verification-result" class="small">
+                        {% if is_verified %}
+                            <i class="bi bi-check-circle-fill text-success"></i> Verified on Blockchain
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="card mt-4 shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Blockchain Verification</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if article['blockchain_hash'] %}
+                            <div class="alert alert-{% if is_verified %}success{% else %}danger{% endif %}">
+                                <i class="bi bi-{% if is_verified %}shield-check{% else %}shield-exclamation{% endif %}"></i>
+                                This article is {% if not is_verified %}not {% endif %}verified on the blockchain
+                            </div>
+                            
+                            <div class="blockchain-details">
+                                <div class="row mb-2">
+                                    <div class="col-md-4 fw-bold">Blockchain Hash:</div>
+                                    <div class="col-md-8 text-truncate">
+                                        <small>{{ article['blockchain_hash'] }}</small>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-md-4 fw-bold">Verification Status:</div>
+                                    <div class="col-md-8">
+                                        <span class="badge bg-{% if is_verified %}success{% else %}danger{% endif %}">
+                                            {% if is_verified %}Verified{% else %}Not Verified{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% if session.get('role') == 'admin' %}
+                                <div class="row">
+                                    <div class="col-12">
+                                        <a href="{{ url_for('view_blockchain') }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-blockchain"></i> View Full Blockchain
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                This article is not yet recorded on the blockchain
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <hr>
+            </header>
+            
+            <div class="article-content mb-5">
+                {{ article['content']|replace('\n', '<br>')|safe }}
+            </div>
+            
+            <footer class="article-footer mt-5 pt-3 border-top">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <span class="text-muted">Status: </span>
+                        <span class="fw-bold">
+                            {% if article['status'] == 'approved' %}
+                                <span class="text-success">Approved</span>
+                            {% elif article['status'] == 'pending' %}
+                                <span class="text-warning">Pending Review</span>
+                            {% else %}
+                                <span class="text-danger">Rejected</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% if session.get('role') == 'admin' and article['status'] == 'pending' %}
+                    <div class="admin-actions">
+                        <a href="{{ url_for('approve_news', news_id=article['id']) }}" class="btn btn-sm btn-success">
+                            <i class="bi bi-check-circle"></i> Approve
+                        </a>
+                        <a href="{{ url_for('reject_news', news_id=article['id']) }}" class="btn btn-sm btn-danger">
+                            <i class="bi bi-x-circle"></i> Reject
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </footer>
+        </article>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Blockchain verification
+    const verifyBtn = document.querySelector('.verify-btn');
+    if (verifyBtn) {
+        verifyBtn.addEventListener('click', function() {
+            const resultElement = document.getElementById('verification-result');
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verifying...';
+            
+            // Simulate API call
+            setTimeout(() => {
+                this.innerHTML = '<i class="bi bi-shield-check"></i> Verify on Blockchain';
+                this.disabled = false;
+                resultElement.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Verified on Blockchain';
+                resultElement.classList.add('verified');
+            }, 1500);
+        });
+    }
+});
+</script>
+{% endblock %}

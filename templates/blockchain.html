@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Blockchain Viewer{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Blockchain Records</h2>
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Blockchain Integrity: 
+                <span class="badge bg-{% if blockchain_obj.is_chain_valid() %}success{% else %}danger{% endif %}">
+                    {% if blockchain_obj.is_chain_valid() %}Valid{% else %}Invalid{% endif %}
+                </span>
+            </h5>
+        </div>
+    </div>
+
+    {% for block in blockchain %}
+    <div class="card mb-3 shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            Block #{{ block.index }}
+        </div>
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-3 fw-bold">Timestamp:</div>
+                <div class="col-md-9">{{ block.timestamp }}</div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-3 fw-bold">Data:</div>
+                <div class="col-md-9">
+                    <div class="bg-light p-2 rounded">
+                        {{ block.data }}
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-3 fw-bold">Previous Hash:</div>
+                <div class="col-md-9 text-truncate">
+                    <small>{{ block.previous_hash }}</small>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 fw-bold">Current Hash:</div>
+                <div class="col-md-9 text-truncate">
+                    <small>{{ block.hash }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

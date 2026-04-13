@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Latest News{% endblock %}
+
+{% block content %}
+<div class="hero-section mb-5">
+    <div class="hero-content text-center text-white">
+        <h1 class="display-4 fw-bold">Welcome to NewsChain</h1>
+        <p class="lead">Your trusted source for verified, positive news powered by blockchain technology</p>
+        {% if 'user_id' not in session %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg mt-3">Join as Reporter</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8 mx-auto text-center">
+        <h2 class="mb-4">Latest News</h2>
+        <p class="text-muted">All news articles are verified by our AI systems and secured with blockchain technology</p>
+    </div>
+</div>
+
+<div class="row">
+    {% for item in news %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">{{ item['title'] }}</h5>
+                <p class="card-text text-muted">{{ item['content'][:150] }}...</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Posted by {{ item['username'] }} on {{ item['created_at'] }}</small>
+                    <a href="{{ url_for('news_detail', news_id=item['id']) }}" class="btn btn-sm btn-outline-primary">Read More</a>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                {% if item['sentiment'] == 'positive' %}
+                    <span class="badge bg-success">Positive</span>
+                {% else %}
+                    <span class="badge bg-danger">Negative</span>
+                {% endif %}
+                {% if not item['is_fake'] %}
+                    <span class="badge bg-primary">Verified</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark">Unverified</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                    url('{{ url_for("static", filename="images/news-bg.jpg") }}');
+        background-size: cover;
+        background-position: center;
+        padding: 100px 20px;
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}
