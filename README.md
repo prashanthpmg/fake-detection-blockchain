@@ -1,11 +1,5 @@
 # 📰 SENTIMENT AWARE FAKE NEWS DETECTION USING BLOCKCHAIN
 
-## 🚀 Live Demo
-
-🔗 https://fake-detection-blockchain.onrender.com/
-
----
-
 ## 📌 Project Overview
 
 This project is a **Fake News Detection Web Application** that combines:
